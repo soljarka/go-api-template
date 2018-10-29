@@ -67,18 +67,18 @@ func main() {
 
 func addMongo(ctx context.Context) {
 	var env user.Specification
-	err := envconfig.Process("", &env)
+	err := envconfig.Process("Users", &env)
 	if err != nil {
 		log.WithCtx(ctx).Panicf("env vars error: '%v'", err)
 	}
 
-	if env.UseMongoDB {
+	if env.Enabled {
 		launchMongoEndpoint(ctx, env)
 	}
 }
 
 func launchMongoEndpoint(ctx context.Context, env user.Specification) {
-	client, err := mongo.NewClient(env.MongoDBUrl)
+	client, err := mongo.NewClient(env.MongodbHost)
 	if err != nil {
 		log.WithCtx(ctx).Panicf("Can't initialize mongodb", err)
 	}
@@ -87,7 +87,7 @@ func launchMongoEndpoint(ctx context.Context, env user.Specification) {
 	if err != nil {
 		log.WithCtx(ctx).Panicf("Can't connect to mongodb", err)
 	}
-
-	service := user.NewService(user.NewMongoRepository(client, env.MongoDBDatabase, env.MongoDBCollectionUsers))
-	user.LaunchController(ctx, env.UsersRoute, service)
+	log.WithCtx(ctx).Info(env)
+	service := user.NewService(user.NewMongoRepository(client, env.MongodbDatabase, env.MongodbCollectionUsers))
+	user.LaunchController(ctx, env.Route, service)
 }

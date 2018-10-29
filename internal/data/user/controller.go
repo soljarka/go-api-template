@@ -14,11 +14,11 @@ import (
 
 // Specification holds parameters for User service
 type Specification struct {
-	UseMongoDB             bool   `split_words:"true" required:"true" default:"true"`
-	MongoDBUrl             string `split_words:"true" required:"true" default:"mongodb://localhost:27017"`
-	MongoDBDatabase        string `split_words:"true" required:"true" default:"db"`
-	MongoDBCollectionUsers string `split_words:"true" required:"true" default:"users"`
-	UsersRoute             string `split_words:"true" required:"true" default:"/users"`
+	Enabled                bool   `split_words:"true" required:"true" default:"true"`
+	MongodbHost            string `split_words:"true" required:"true" default:"mongodb://localhost:27017"`
+	MongodbDatabase        string `split_words:"true" required:"true" default:"db"`
+	MongodbCollectionUsers string `split_words:"true" required:"true" default:"users"`
+	Route                  string `split_words:"true" required:"true" default:"/users"`
 }
 
 //LaunchController registers a new REST endpoint for User operations
