@@ -26,8 +26,9 @@ func main() {
 		log.WithCtx(rootCtx).Panicf("env vars error: '%v'", err)
 	}
 
-	someApp := app.NewApp(env)
 	addMongo(rootCtx)
+
+	someApp := app.NewApp(env)
 
 	http.HandleFunc(
 		"/",
@@ -88,6 +89,5 @@ func launchMongoEndpoint(ctx context.Context, env user.Specification) {
 	}
 
 	service := user.NewService(user.NewMongoRepository(client, env.MongoDBDatabase, env.MongoDBCollectionUsers))
-
 	user.LaunchController(ctx, env.UsersRoute, service)
 }

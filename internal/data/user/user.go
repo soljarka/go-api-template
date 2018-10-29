@@ -1,6 +1,6 @@
 package user
 
-//ID is id alias for User
+//ID is string alias type for User id
 type ID = string
 
 //User represents a person
