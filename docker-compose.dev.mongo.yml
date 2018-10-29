@@ -4,6 +4,9 @@ services:
     build:
       context: .
       dockerfile: build/Dockerfile
+    volumes:
+      - ./internal:/go/src/ctco-dev/go-api-template/internal
+      - ./cmd:/go/src/ctco-dev/go-api-template/cmd    
     depends_on:
      - mongo
     ports:
