@@ -4,8 +4,6 @@ services:
     build:
       context: .
       dockerfile: build/Dockerfile
-    depends_on:
-     - mongo
     ports:
       - 3000:3000
     environment:
@@ -14,9 +12,5 @@ services:
       - USERS_MONGODB_DATABASE
       - USERS_MONGODB_COLLECTION_USERS
       - USERS_ROUTE
-      - USERS_MONGODB_HOST=mongodb://mongo:27017
+      - USERS_MONGODB_HOST
     tty: true
-  mongo:
-    image: mongo
-    volumes:
-      - /data/db

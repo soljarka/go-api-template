@@ -87,8 +87,10 @@ func launchMongoEndpoint(ctx context.Context, env user.Specification) {
 	if err != nil {
 		log.WithCtx(ctx).Panicf("Can't connect to mongodb", err)
 	}
+	log.WithCtx(ctx).Info(client)
+	mongoClient := user.MongoClient{Client: client}
 
-	service := user.NewService(user.NewMongoRepository(client, env.MongodbDatabase, env.MongodbCollectionUsers))
+	service := user.NewService(user.NewMongoRepository(mongoClient, env.MongodbDatabase, env.MongodbCollectionUsers))
 	user.LaunchController(ctx, env.Route, service)
 	log.WithCtx(ctx).Info("Users service launched at ", env.Route)
 }

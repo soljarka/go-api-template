@@ -2,10 +2,8 @@ package user
 
 import (
 	"context"
-
 	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/mongodb/mongo-go-driver/bson/objectid"
-	"github.com/mongodb/mongo-go-driver/mongo"
 )
 
 type mongoUser struct {
@@ -20,11 +18,11 @@ type mongoUserInput struct {
 }
 
 type repo struct {
-	collection *mongo.Collection
+	collection Collection
 }
 
 // NewMongoRepository returns a MongoDB implementation of User repository
-func NewMongoRepository(c *mongo.Client, db string, collection string) Repository {
+func NewMongoRepository(c Client, db string, collection string) Repository {
 	return &repo{
 		collection: c.Database(db).Collection(collection),
 	}
@@ -56,7 +54,7 @@ func (r *repo) Find(ctx context.Context, id ID) (*User, error) {
 	}
 
 	filter := bson.NewDocument(bson.EC.ObjectID("_id", oid))
-	err = r.collection.FindOne(context.Background(), filter).Decode(&result)
+	err = r.collection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		return nil, err
 	}
