@@ -11,15 +11,18 @@ import (
 	"github.com/mongodb/mongo-go-driver/mongo"
 )
 
+// Client is a wrapper for mongo.Client
 type Client interface {
 	Database(name string, opts ...dbopt.Option) Database
 	Connect(ctx context.Context) error
 }
 
+// Database is a wrapper for mongo.Database
 type Database interface {
 	Collection(name string, opts ...collectionopt.Option) Collection
 }
 
+// Collection is a wrapper for mocking mongo.Collection
 type Collection interface {
 	DeleteOne(ctx context.Context, filter interface{}, opts ...deleteopt.Delete) (*mongo.DeleteResult, error)
 	DeleteMany(ctx context.Context, filter interface{}, opts ...deleteopt.Delete) (*mongo.DeleteResult, error)
@@ -28,54 +31,57 @@ type Collection interface {
 	Find(ctx context.Context, filter interface{}, opts ...findopt.Find) (mongo.Cursor, error)
 }
 
+// DocumentResult is a wrapper for mongo.DocumentResult
 type DocumentResult interface {
 	Decode(v interface{}) error
 }
 
-type MongoClient struct {
+type mongoClient struct {
 	*mongo.Client
 }
 
+// NewMongoClient wraps mongo.NewClient and returns a MongoDB client instance conveniently wrapped into Client interface
 func NewMongoClient(uri string) (Client, error) {
 	client, err := mongo.NewClient(uri)
 	if err != nil {
 		return nil, err
 	}
-	return &MongoClient{client}, nil
+	return &mongoClient{client}, nil
 }
 
-func (c MongoClient) Connect(ctx context.Context) error {
+func (c mongoClient) Connect(ctx context.Context) error {
 	return c.Client.Connect(ctx)
 }
 
-func (c MongoClient) Database(name string, opts ...dbopt.Option) Database {
-	return &MongoDatabase{ Database: c.Client.Database(name, opts...)}
+func (c mongoClient) Database(name string, opts ...dbopt.Option) Database {
+	return &mongoDatabase{ Database: c.Client.Database(name, opts...)}
 }
 
-type MongoDatabase struct {
+type mongoDatabase struct {
 	*mongo.Database
 }
 
-func (c MongoDatabase) Collection(name string, opts ...collectionopt.Option) Collection {
-	return &MongoCollection{ Collection: c.Database.Collection(name, opts...)}
+func (c *mongoDatabase) Collection(name string, opts ...collectionopt.Option) Collection {
+	return &mongoCollection{ Collection: c.Database.Collection(name, opts...)}
 }
 
-type MongoCollection struct {
+type mongoCollection struct {
 	*mongo.Collection
 }
 
-func (c *MongoCollection) DeleteOne(ctx context.Context, filter interface{}, opts ...deleteopt.Delete) (*mongo.DeleteResult, error) {
+func (c *mongoCollection) DeleteOne(ctx context.Context, filter interface{}, opts ...deleteopt.Delete) (*mongo.DeleteResult, error) {
 	return c.Collection.DeleteOne(ctx, filter, opts...)
 }
-func (c *MongoCollection) DeleteMany(ctx context.Context, filter interface{}, opts ...deleteopt.Delete) (*mongo.DeleteResult, error) {
+
+func (c *mongoCollection) DeleteMany(ctx context.Context, filter interface{}, opts ...deleteopt.Delete) (*mongo.DeleteResult, error) {
 	return c.Collection.DeleteMany(ctx, filter, opts...)
 }
-func (c *MongoCollection) FindOne(ctx context.Context, filter interface{}, opts ...findopt.One) DocumentResult {
+func (c *mongoCollection) FindOne(ctx context.Context, filter interface{}, opts ...findopt.One) DocumentResult {
 	return c.Collection.FindOne(ctx, filter, opts...)
 }
-func (c *MongoCollection) InsertOne(ctx context.Context, document interface{}, opts ...insertopt.One) (*mongo.InsertOneResult, error) {
+func (c *mongoCollection) InsertOne(ctx context.Context, document interface{}, opts ...insertopt.One) (*mongo.InsertOneResult, error) {
 	return c.Collection.InsertOne(ctx, document, opts...)
 }
-func (c *MongoCollection) Find(ctx context.Context, filter interface{}, opts ...findopt.Find) (mongo.Cursor, error) {
+func (c *mongoCollection) Find(ctx context.Context, filter interface{}, opts ...findopt.Find) (mongo.Cursor, error) {
 	return c.Collection.Find(ctx, filter, opts...)
 }
