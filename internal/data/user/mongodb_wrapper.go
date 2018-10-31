@@ -13,6 +13,7 @@ import (
 
 type Client interface {
 	Database(name string, opts ...dbopt.Option) Database
+	Connect(ctx context.Context) error
 }
 
 type Database interface {
@@ -33,6 +34,18 @@ type DocumentResult interface {
 
 type MongoClient struct {
 	*mongo.Client
+}
+
+func NewMongoClient(uri string) (Client, error) {
+	client, err := mongo.NewClient(uri)
+	if err != nil {
+		return nil, err
+	}
+	return &MongoClient{client}, nil
+}
+
+func (c MongoClient) Connect(ctx context.Context) error {
+	return c.Client.Connect(ctx)
 }
 
 func (c MongoClient) Database(name string, opts ...dbopt.Option) Database {

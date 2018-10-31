@@ -16,6 +16,8 @@ import (
 
 type clientMock struct {}
 
+func (c *clientMock) Connect (ctx context.Context) error {return nil}
+
 func (c *clientMock) Database(name string, opts ...dbopt.Option) Database {
 	return &databaseMock{}
 }

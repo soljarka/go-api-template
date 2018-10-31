@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/kelseyhightower/envconfig"
-	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 )
@@ -78,7 +77,7 @@ func addMongo(ctx context.Context) {
 }
 
 func launchMongoEndpoint(ctx context.Context, env user.Specification) {
-	client, err := mongo.NewClient(env.MongodbHost)
+	client, err := user.NewMongoClient(env.MongodbHost)
 	if err != nil {
 		log.WithCtx(ctx).Panicf("Can't initialize mongodb", err)
 	}
@@ -87,10 +86,8 @@ func launchMongoEndpoint(ctx context.Context, env user.Specification) {
 	if err != nil {
 		log.WithCtx(ctx).Panicf("Can't connect to mongodb", err)
 	}
-	log.WithCtx(ctx).Info(client)
-	mongoClient := user.MongoClient{Client: client}
 
-	service := user.NewService(user.NewMongoRepository(mongoClient, env.MongodbDatabase, env.MongodbCollectionUsers))
+	service := user.NewService(user.NewMongoRepository(client, env.MongodbDatabase, env.MongodbCollectionUsers))
 	user.LaunchController(ctx, env.Route, service)
 	log.WithCtx(ctx).Info("Users service launched at ", env.Route)
 }
