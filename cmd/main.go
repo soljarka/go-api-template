@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"ctco-dev/go-api-template/internal/app"
+	"ctco-dev/go-api-template/internal/beer"
 	"ctco-dev/go-api-template/internal/log"
 	"encoding/json"
 	"fmt"
@@ -24,37 +25,44 @@ func main() {
 		log.WithCtx(rootCtx).Panicf("env vars error: '%v'", err)
 	}
 
-	someApp := app.NewApp(env)
+	if env.ServeBeer {
+		beer := &beer.Beer{BeerHandler: &beer.BeerHandler{}}
+		http.ListenAndServe(":8000", beer)
+	} else {
 
-	http.HandleFunc(
-		"/",
-		func(w http.ResponseWriter, r *http.Request) {
+		someApp := app.NewApp(env)
 
-			reqID := uuid.NewV4().String()[0:8]
-			reqCtx := log.NewContext(rootCtx, logrus.Fields{"reqID": reqID})
-			reqCtx, cancel := context.WithTimeout(reqCtx, time.Second*10)
-			defer cancel()
+		http.HandleFunc(
+			"/",
+			func(w http.ResponseWriter, r *http.Request) {
 
-			resp, err := someApp.DoSomething(reqCtx)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				log.WithCtx(reqCtx).Error(err)
-				w.Write([]byte("Cant't get new joke"))
-				return
-			}
+				reqID := uuid.NewV4().String()[0:8]
+				reqCtx := log.NewContext(rootCtx, logrus.Fields{"reqID": reqID})
+				reqCtx, cancel := context.WithTimeout(reqCtx, time.Second*10)
+				defer cancel()
 
-			bytes, err := json.Marshal(resp)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte("Can't encode response"))
-				return
-			}
+				resp, err := someApp.DoSomething(reqCtx)
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					log.WithCtx(reqCtx).Error(err)
+					w.Write([]byte("Cant't get new joke"))
+					return
+				}
 
-			w.WriteHeader(http.StatusOK)
-			w.Header().Set("Content-Type", "application/json")
-			w.Write(bytes)
+				bytes, err := json.Marshal(resp)
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte("Can't encode response"))
+					return
+				}
 
-		})
+				w.WriteHeader(http.StatusOK)
+				w.Header().Set("Content-Type", "application/json")
+				w.Write(bytes)
+
+			})
+
+	}
 
 	log.WithCtx(rootCtx).Infof("Server is running at: http://localhost:%d", env.Port)
 	addr := fmt.Sprintf(":%d", env.Port)
